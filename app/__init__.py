@@ -1,6 +1,6 @@
 from flask import Flask
 import os
-from .config import configuration as config
+from config import configuration as config
 
 def create_app(test_config=None):
     # create and configure the app

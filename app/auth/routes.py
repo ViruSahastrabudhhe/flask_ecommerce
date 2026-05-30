@@ -1,5 +1,6 @@
 from . import auth_bp
+from flask import jsonify
 
 @auth_bp.get('/')
 def index():
-    return "Hello World!"
+    return jsonify({"message": "Hello, World!"})
