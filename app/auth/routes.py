@@ -25,10 +25,6 @@ def user_lookup_callback(_jwt_header, jwt_data):
     identity = jwt_data["sub"]
     return User.query.filter_by(id=identity).one_or_none()
 
-@auth_bp.get('/')
-def index():
-    return jsonify({'message': 'Hello World!'}), 200
-
 @auth_bp.post('/register')
 def register():
     if not request.is_json:
@@ -39,6 +35,8 @@ def register():
     try:
         data = RegisterUserRequest(**register_data)
         email = data.email
+        first_name = data.first_name
+        last_name = data.last_name
         password = data.password.get_secret_value()
         confirm_password = data.confirm_password.get_secret_value()
 
@@ -51,15 +49,18 @@ def register():
 
         user = User()
         user.email = email
+        user.first_name = first_name
+        user.last_name = last_name
         user.set_password(password)
 
         db.session.add(user)
         db.session.commit()
 
-        return jsonify({"message": f"User {email} registered successfully!"}), 201
+        return jsonify({"message": f"Successfully registered user {email}!"}), 201
     except Exception as e:
         db.session.rollback()
-        return jsonify({'message': f'{str(e)}'}), 500
+        current_app.logger.error(f"Error registering user with email {email}: {str(e)}")
+        return jsonify({'message': 'Internal error'}), 500
     
 @auth_bp.post('/login')
 def login():
@@ -88,7 +89,8 @@ def login():
         
         return response, 200
     except Exception as e:
-        return jsonify({'message': f'{str(e)}'}), 500
+        current_app.logger.error(f"Error logging in user with email {email}: {str(e)}")
+        return jsonify({'message': 'Internal error'}), 500
     
 @auth_bp.get('/protected')
 @jwt_required()

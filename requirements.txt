@@ -4,7 +4,7 @@ flask-migrate
 flask-cors
 bcrypt
 flask-jwt-extended
-dotenv
+python-dotenv
 pytest
 pydantic
 pydantic[email]

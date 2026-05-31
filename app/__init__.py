@@ -1,5 +1,5 @@
-from flask import Flask
 import os
+from flask import Flask, jsonify
 from config import configuration as config
 from .extensions import (
     migrate, cors, db, jwt
@@ -24,9 +24,19 @@ def create_app(test_config=None):
     cors.init_app(app)
     jwt.init_app(app)
 
-    from .errors import errors_bp
-    app.register_blueprint(errors_bp)
-    from .auth import auth_bp
-    app.register_blueprint(auth_bp)
+    @app.route('/api/')
+    def index():
+        return jsonify({'message': 'Hello World!'}), 200
+
+    from .errors import errors_bp as error_handlers
+    app.register_blueprint(error_handlers)
+    from .seeders import seeders_bp as seeders
+    app.register_blueprint(seeders)
+    from .auth import auth_bp as auth_routes
+    app.register_blueprint(auth_routes, url_prefix='/api/auth')
+    from .product import products_bp as products
+    app.register_blueprint(products, url_prefix='/api/products')
+    from .store import stores_bp as stores
+    app.register_blueprint(stores, url_prefix='/api/stores')
 
     return app
