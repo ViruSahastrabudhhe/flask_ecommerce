@@ -6,7 +6,9 @@ from flask import (
     current_app,
 )
 from ..extensions import jwt
-from ..models import db, User
+from ..models import (
+    db, User, UserRole
+)
 from flask_jwt_extended import (
     create_access_token,
     jwt_required,
@@ -54,6 +56,14 @@ def register():
         user.set_password(password)
 
         db.session.add(user)
+        db.session.commit()
+        db.session.flush()
+
+        user_role = UserRole()
+        user_role.user_id = user.id
+        user_role.role_id = 3
+
+        db.session.add(user_role)
         db.session.commit()
 
         return jsonify({"message": f"Successfully registered user {email}!"}), 201

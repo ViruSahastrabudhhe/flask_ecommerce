@@ -30,8 +30,8 @@ def create_app(test_config=None):
 
     from .errors import errors_bp as error_handlers
     app.register_blueprint(error_handlers)
-    from .seeders import seeders_bp as seeders
-    app.register_blueprint(seeders)
+    from .seeders import seeders_bp as seed
+    app.register_blueprint(seed)
     from .auth import auth_bp as auth_routes
     app.register_blueprint(auth_routes, url_prefix='/api/auth')
     from .product import products_bp as products

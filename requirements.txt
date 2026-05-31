@@ -8,3 +8,5 @@ python-dotenv
 pytest
 pydantic
 pydantic[email]
+tzdata
+pymysql
