@@ -1,4 +1,4 @@
-from . import stores_bp
+from . import store_bp
 from flask import (
     request,
     jsonify,
@@ -12,8 +12,8 @@ from flask_jwt_extended import (
 from ..models import db, Store
 from ..requests import CreateStoreRequest
 
-@stores_bp.get('/store/<int:id>')
-def get_store(id):
+@store_bp.get('/<int:id>')
+def get_store_by_id(id: int):
     try:
         store = Store.query.filter_by(id=id).one_or_none()
 
@@ -25,7 +25,7 @@ def get_store(id):
         current_app.logger.error(f"Error fetching store with id {id}: {str(e)}")
         return jsonify({'message': 'Internal error'}), 500
     
-@stores_bp.post('/create')
+@store_bp.post('/create')
 @jwt_required()
 def create_store():
     if not request.is_json:
@@ -37,7 +37,6 @@ def create_store():
         data = CreateStoreRequest(**create_data)
         name = data.name
         email = data.email
-        address = data.address
         description = data.description
 
         if not name or not email:
@@ -48,7 +47,6 @@ def create_store():
         store = Store()
         store.name = name
         store.email = email
-        store.address = address
         store.description = description
         store.user_id = current_user.id
 

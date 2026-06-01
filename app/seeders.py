@@ -1,5 +1,7 @@
 from flask import Blueprint
-from .models import db, User, Role, UserRole
+from .models import (
+    db, User, Role, Store
+)
 from .enums import RoleTypes
 
 seeders_bp = Blueprint('seed', __name__)
@@ -42,11 +44,8 @@ def seed_admin_user():
     db.session.add(user)
     db.session.commit()
 
-    user_role = UserRole()
-    user_role.user_id = user.id
-    user_role.role_id = 1
-
-    db.session.add(user_role)
-    db.session.commit()
-
     print(f"Successfully created admin user {user}!")
+
+@seeders_bp.cli.command('stores')
+def seed_stores():
+    pass

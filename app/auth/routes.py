@@ -7,7 +7,7 @@ from flask import (
 )
 from ..extensions import jwt
 from ..models import (
-    db, User, UserRole
+    db, User
 )
 from flask_jwt_extended import (
     create_access_token,
@@ -16,6 +16,9 @@ from flask_jwt_extended import (
 )
 from ..requests import (
     LoginUserRequest, RegisterUserRequest
+)
+from ..enums import (
+    RoleTypes
 )
 
 @jwt.user_identity_loader
@@ -42,8 +45,6 @@ def register():
         password = data.password.get_secret_value()
         confirm_password = data.confirm_password.get_secret_value()
 
-        if not email or not password or not confirm_password:
-            return jsonify({'message': 'Please input your credentials!'}), 400
         if password != confirm_password:
             return jsonify({'message': 'Passwords do not match!'}), 400
         if User.query.filter_by(email=email).first() is not None:
@@ -58,13 +59,6 @@ def register():
         db.session.add(user)
         db.session.commit()
         db.session.flush()
-
-        user_role = UserRole()
-        user_role.user_id = user.id
-        user_role.role_id = 3
-
-        db.session.add(user_role)
-        db.session.commit()
 
         return jsonify({"message": f"Successfully registered user {email}!"}), 201
     except Exception as e:
@@ -92,9 +86,13 @@ def login():
         if user is None:
             return jsonify({'message': 'User does not exist!'}), 401
         if user.check_password(password)==False:
-            return jsonify({'message': 'Incorrect password!'}), 401 
+            return jsonify({'message': 'Incorrect password!'}), 401
         
-        access_token = create_access_token(identity=user)
+        claims = {}
+
+        current_app.logger.info(f"User {email} has roles: {[role.name.value for role in user.roles]}")
+        
+        access_token = create_access_token(identity=user, additional_claims=claims)
         response = jsonify(message="Successfully logged in!", access_token=access_token)
         
         return response, 200
@@ -106,7 +104,6 @@ def login():
 @jwt_required()
 def protected():
     return jsonify({
-        'id': current_user.id,
         'message': 'This is a protected route!',
         'user': current_user.to_json()
     }), 200

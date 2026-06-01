@@ -27,6 +27,14 @@ def create_app(test_config=None):
     @app.route('/api/')
     def index():
         return jsonify({'message': 'Hello World!'}), 200
+    
+    @app.cli.command('init-db')
+    def init_db():
+        db.drop_all()
+        db.create_all()
+        db.session.commit()
+        
+        print("Successfully reset the database!")
 
     from .errors import errors_bp as error_handlers
     app.register_blueprint(error_handlers)
@@ -34,9 +42,13 @@ def create_app(test_config=None):
     app.register_blueprint(seed)
     from .auth import auth_bp as auth_routes
     app.register_blueprint(auth_routes, url_prefix='/api/auth')
-    from .product import products_bp as products
+    from .admin import admin_bp as admin
+    app.register_blueprint(admin, url_prefix='/api/admin')
+    from .product import product_bp as products
     app.register_blueprint(products, url_prefix='/api/products')
-    from .store import stores_bp as stores
+    from .store import store_bp as stores
     app.register_blueprint(stores, url_prefix='/api/stores')
+    from .address import address_bp as addresses
+    app.register_blueprint(addresses, url_prefix='/api/addresses')
 
     return app

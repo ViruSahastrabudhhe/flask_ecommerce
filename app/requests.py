@@ -20,5 +20,15 @@ class CreateStoreRequest(BaseModel):
 
     name: str
     email: EmailStr
-    address: str = ''
     description: str = ''
+
+class CreateAddressRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    country: str
+    address: str
+    city: str
+    province: str
+    zip_code: int
+    type: str
+    is_active: bool = False
