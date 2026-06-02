@@ -7,7 +7,7 @@ from flask import (
 )
 from ..extensions import jwt
 from ..models import (
-    db, User
+    db, User, Role, UserRole
 )
 from flask_jwt_extended import (
     create_access_token,
@@ -51,10 +51,14 @@ def register():
             return jsonify({'message': 'Email already exists!'}), 400
 
         user = User()
+        user_role = UserRole()
+        user_role.role = Role.query.filter_by(name=RoleTypes.BUYER).one_or_none()
+
         user.email = email
         user.first_name = first_name
         user.last_name = last_name
         user.set_password(password)
+        user.roles.append(user_role)
 
         db.session.add(user)
         db.session.commit()
@@ -75,8 +79,8 @@ def login():
 
     try:
         data = LoginUserRequest(**login_data)
-        email = data.email
-        password = data.password.get_secret_value()
+        email: str = data.email
+        password: str = data.password.get_secret_value()
 
         if not email or not password:
             return jsonify({'message': 'Please input your credentials!'}), 400
@@ -88,10 +92,20 @@ def login():
         if user.check_password(password)==False:
             return jsonify({'message': 'Incorrect password!'}), 401
         
-        claims = {}
+        claims = {
+            'is_admin': False,
+            'is_seller': False,
+            'is_buyer': False
+        }
+        roles = {user_role.role.name for user_role in user.roles}
 
-        current_app.logger.info(f"User {email} has roles: {[role.name.value for role in user.roles]}")
-        
+        if RoleTypes.ADMIN in roles:
+            claims['is_admin'] = True
+        if RoleTypes.SELLER in roles:
+            claims['is_seller'] = True
+        if RoleTypes.BUYER in roles:
+            claims['is_buyer'] = True
+
         access_token = create_access_token(identity=user, additional_claims=claims)
         response = jsonify(message="Successfully logged in!", access_token=access_token)
         

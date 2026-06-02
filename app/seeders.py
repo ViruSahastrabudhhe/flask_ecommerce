@@ -1,18 +1,21 @@
 from flask import Blueprint
 from .models import (
-    db, User, Role, Store
+    db, User, Role, UserRole, Store
 )
 from .enums import RoleTypes
 
 seeders_bp = Blueprint('seed', __name__)
 
-'''
-    ordered list of seed commands you should run:
-    1. roles
-    2. admin-user
-'''
+@seeders_bp.cli.command('db')
+def init_db():
+    db.drop_all()
+    db.create_all()
+    seed_roles()
+    seed_admin_user()
+    db.session.commit()
+    
+    print("Successfully initialized and seeded the database!")
 
-@seeders_bp.cli.command('roles')
 def seed_roles():
     Role.query.delete()
 
@@ -29,23 +32,23 @@ def seed_roles():
         db.session.add(role)
         db.session.commit()
 
-        print(f"Successfully created {role}!")
+    print(f"Successfully created roles!")
 
-@seeders_bp.cli.command('admin-user')
 def seed_admin_user():
-    User.query.delete()
-
     user = User()
+    user_role = UserRole()
+    user_role.role = Role.query.filter_by(name=RoleTypes.ADMIN).one_or_none()
+
     user.email = 'test@example.com'
     user.first_name = 'Test'
     user.last_name = 'User'
     user.set_password('password')
+    user.roles.append(user_role)
 
     db.session.add(user)
     db.session.commit()
 
-    print(f"Successfully created admin user {user}!")
+    print(f"Successfully created admin user {user.email}!")
 
-@seeders_bp.cli.command('stores')
 def seed_stores():
     pass

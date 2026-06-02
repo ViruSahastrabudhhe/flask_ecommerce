@@ -1,4 +1,8 @@
-from pydantic import BaseModel, EmailStr, SecretStr, Field, ConfigDict
+from pydantic import (
+    BaseModel, EmailStr, SecretStr, Field, ConfigDict,
+    FilePath
+)
+from .enums import RoleTypes, StoreAddressTypes
 
 class RegisterUserRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
@@ -20,7 +24,19 @@ class CreateStoreRequest(BaseModel):
 
     name: str
     email: EmailStr
-    description: str = ''
+    description: str = None
+    country: str
+    address: str
+    city: str
+    province: str
+    zip_code: int
+    type: StoreAddressTypes
+    is_active: bool = False
+    valid_id: FilePath
+    proof_of_address: FilePath
+    business_registration_certificate: FilePath
+    business_permit: FilePath
+    bir_certificate: FilePath
 
 class CreateAddressRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)

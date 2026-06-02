@@ -1,12 +1,16 @@
 import os
 from flask import Flask, jsonify
 from config import configuration as config
+from .seeders import init_db
 from .extensions import (
     migrate, cors, db, jwt
 )
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in config.get('ALLOWED_EXTENSIONS', set())
+
 def create_app(test_config=None):
-    # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
 
     if test_config is None:
@@ -27,14 +31,6 @@ def create_app(test_config=None):
     @app.route('/api/')
     def index():
         return jsonify({'message': 'Hello World!'}), 200
-    
-    @app.cli.command('init-db')
-    def init_db():
-        db.drop_all()
-        db.create_all()
-        db.session.commit()
-        
-        print("Successfully reset the database!")
 
     from .errors import errors_bp as error_handlers
     app.register_blueprint(error_handlers)
